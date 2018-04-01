@@ -59,6 +59,14 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
+      },
+      change_password:{
+        allowNull:true,
+        type: Sequelize.STRING
+      },
+      password_expires:{
+        allowNull:true,
+        type: Sequelize.STRING
       }
     });
   },

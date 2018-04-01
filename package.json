@@ -9,12 +9,15 @@
   "author": "Haude",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.6.0",
     "bcrypt": "^1.0.3",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
     "jsonwebtoken": "^8.2.0",
     "mysql": "^2.15.0",
     "mysql2": "^1.5.3",
+    "nodemailer": "^4.6.3",
+    "nodemailer-express-handlebars": "^3.0.0",
     "sequelize": "^4.37.2"
   }
 }

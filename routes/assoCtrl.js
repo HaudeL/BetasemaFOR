@@ -2,7 +2,7 @@
 var bcrypt = require("bcrypt");
 var jwtUtils = require("../utils/jwt.utils");
 var models = require('../models');
-
+var asyncLib = require('async');
 const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const PASSWORD_REGEX = /^(?=.*\d).{4,8}$/;
 // routes
@@ -115,6 +115,59 @@ module.exports = {
             }
         }).catch((err) => {
             res.status(500).json({ 'error': 'cannot fetch user' });
+        });
+    },
+    updateUserProfile: (req, res) => {
+        // Getting auth header
+        var headerAuth = req.headers['authorization'];
+        var associationNum_rna = jwtUtils.getAssociationNum_rna(headerAuth);
+
+        // Params
+        var adresse = req.body.adresse;
+        var code_postal = req.body.code_postal;
+        var ville = req.body.ville;
+        var nom_referent = req.body.nom_referent;
+        var prenom_referent = req.body.prenom_referent;
+        var telephone = req.body.telephone;
+        var email = req.body.email;
+        // var password = req.body.password;
+
+        asyncLib.waterfall([
+            function (done) {
+                models.association.findOne({
+                    attributes: ['num_rna', 'nom_asso', 'adresse', 'code_postal', 'ville', 'nom_referent', 'prenom_referent', 'telephone', 'email'],
+                    where: { num_rna: associationNum_rna }
+                }).then(function (userFound) {
+                    done(null, userFound);
+                })
+                    .catch(function (err) {
+                        return res.status(500).json({ 'error': 'unable to verify user' });
+                    });
+            },
+            function (userFound, done) {
+                if (userFound) {
+                    userFound.update({
+                        adresse: (adresse ? adresse : userFound.adresse),
+                        code_postal: (code_postal ? code_postal : userFound.code_postal),
+                        ville: (ville ? ville : userFound.ville),
+                        nom_referent: (nom_referent ? nom_referent : userFound.nom_referent),
+                        prenom_referent: (prenom_referent ? prenom_referent : userFound.prenom_referent),
+                        telephone: (telephone ? telephone : userFound.telephone),
+                        email: (email ? email : userFound.email)
+                    }).then(function () { done(userFound); })
+                        .catch(function (err) {
+                            res.status(500).json({ 'error': 'cannot update user' });
+                        });
+                } else {
+                    res.status(404).json({ 'error': 'user not found' });
+                }
+            },
+        ], function (userFound) {
+            if (userFound) {
+                return res.status(201).json(userFound);
+            } else {
+                return res.status(500).json({ 'error': 'cannot update user profile' });
+            }
         });
     }
 }
